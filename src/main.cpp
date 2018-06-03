@@ -4,11 +4,15 @@
 #include <mcpelauncher/path_helper.h>
 #include <minecraft/Common.h>
 #include <mcpelauncher/app_platform.h>
+#include "server_properties.h"
 
 int main(int argc, char *argv[]) {
     CrashHandler::registerCrashHandler();
     MinecraftUtils::workaroundLocaleBug();
     MinecraftUtils::setupForHeadless();
+
+    ServerProperties props;
+    props.load();
 
     Log::trace("Launcher", "Loading Minecraft library");
     void* handle = MinecraftUtils::loadMinecraftLib();
