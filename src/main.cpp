@@ -22,6 +22,7 @@
 #include <minecraft/DedicatedServerCommandOrigin.h>
 #include <minecraft/MinecraftCommands.h>
 #include <mcpelauncher/mod_loader.h>
+#include <hybris/dlfcn.h>
 #include "launcher_minecraft_api.h"
 #include "stub_key_provider.h"
 #include "server_properties.h"
@@ -42,7 +43,8 @@ int main(int argc, char *argv[]) {
     Log::info("Launcher", "Game version: %s", Common::getGameVersionStringNet().c_str());
 
     Log::info("Launcher", "Applying patches");
-    // Patches go here
+    void* ptr = hybris_dlsym(handle, "_ZN5Level17_checkUserStorageEv");
+    PatchUtils::patchCallInstruction(ptr, (void*) (void (*)()) []{ }, true);
 
     ModLoader modLoader;
     modLoader.loadModsFromDirectory(PathHelper::getPrimaryDataDirectory() + "mods/");
