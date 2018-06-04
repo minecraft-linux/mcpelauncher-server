@@ -17,12 +17,16 @@
 #include <minecraft/AutomationClient.h>
 #include <minecraft/ExternalFileLevelStorageSource.h>
 #include <minecraft/ServerInstance.h>
+#include <minecraft/Minecraft.h>
 #include <minecraft/I18n.h>
+#include <minecraft/DedicatedServerCommandOrigin.h>
+#include <minecraft/MinecraftCommands.h>
 #include <mcpelauncher/mod_loader.h>
 #include "launcher_minecraft_api.h"
 #include "stub_key_provider.h"
 #include "server_properties.h"
 #include "server_minecraft_app.h"
+#include "console_reader.h"
 
 int main(int argc, char *argv[]) {
     CrashHandler::registerCrashHandler();
@@ -145,6 +149,21 @@ int main(int argc, char *argv[]) {
     resourcePackManager->onLanguageChanged();
     Log::info("Launcher", "Server initialized");
     modLoader.onServerInstanceInitialized(&instance);
+    instance.startServerThread();
+
+    ConsoleReader reader;
+    ConsoleReader::registerInterruptHandler();
+
+    std::string line;
+    while (reader.read(line)) {
+        instance.queueForServerThread([&instance, line]() {
+            std::unique_ptr<DedicatedServerCommandOrigin> commandOrigin(new DedicatedServerCommandOrigin("Server", *instance.minecraft));
+            instance.minecraft->getCommands()->requestCommandExecution(std::move(commandOrigin), line, 4, true);
+        });
+    }
+
+    Log::info("Launcher", "Stopping...");
+    instance.leaveGameSync();
 
     MinecraftUtils::workaroundShutdownCrash(handle);
     return 0;
