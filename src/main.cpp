@@ -22,6 +22,7 @@
 #include <minecraft/DedicatedServerCommandOrigin.h>
 #include <minecraft/MinecraftCommands.h>
 #include <mcpelauncher/mod_loader.h>
+#include <argparser.h>
 #include <hybris/dlfcn.h>
 #include "launcher_minecraft_api.h"
 #include "stub_key_provider.h"
@@ -32,6 +33,20 @@
 int main(int argc, char *argv[]) {
     CrashHandler::registerCrashHandler();
     MinecraftUtils::workaroundLocaleBug();
+
+    argparser::arg_parser p;
+    argparser::arg<std::string> gameDir (p, "--game-dir", "-dg", "Directory with the game and assets");
+    argparser::arg<std::string> dataDir (p, "--data-dir", "-dd", "Directory to use for the data");
+    argparser::arg<std::string> cacheDir (p, "--cache-dir", "-dc", "Directory to use for cache");
+    if (!p.parse(argc, (const char**) argv))
+        return 1;
+    if (!gameDir.get().empty())
+        PathHelper::setGameDir(gameDir);
+    if (!dataDir.get().empty())
+        PathHelper::setDataDir(dataDir);
+    if (!cacheDir.get().empty())
+        PathHelper::setCacheDir(cacheDir);
+
     MinecraftUtils::setupForHeadless();
 
     Log::trace("Launcher", "Loading Minecraft library");
