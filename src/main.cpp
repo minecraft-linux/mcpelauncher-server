@@ -24,7 +24,6 @@
 #include <mcpelauncher/mod_loader.h>
 #include <argparser.h>
 #include <hybris/dlfcn.h>
-#include "launcher_minecraft_api.h"
 #include "stub_key_provider.h"
 #include "server_properties.h"
 #include "server_minecraft_app.h"
@@ -78,8 +77,6 @@ int main(int argc, char *argv[]) {
     Log::trace("Launcher", "Loading whitelist and operator list");
     Whitelist whitelist;
     OpsList ops (true);
-    Log::trace("Launcher", "Initializing Minecraft API classes");
-    LauncherMinecraftApi api (handle);
 
     Log::trace("Launcher", "Setting up level settings");
     LevelSettings levelSettings;
@@ -154,9 +151,9 @@ int main(int argc, char *argv[]) {
     auto idleTimeout = std::chrono::seconds((int) (props.playerIdleTimeout * 60.f));
     IContentKeyProvider* keyProvider = &stubKeyProvider;
     auto createLevelStorageFunc = [&levelStorage, &props, keyProvider](Scheduler& scheduler) {
-        return levelStorage.createLevelStorage(scheduler, props.worldDir.get(), mcpe::string(), *keyProvider);
+        return levelStorage.createLevelStorage(scheduler, props.worldDir.get(), *ContentIdentity::EMPTY, *keyProvider);
     };
-    ServerInstance instance (minecraftApp, whitelist, ops, &pathmgr, idleTimeout, props.worldDir.get(), props.worldName.get(), props.motd.get(), levelSettings, api, props.viewDistance, true, props.port, props.portV6, props.maxPlayers, props.onlineMode, {}, "normal", *mce::UUID::EMPTY, eventing, resourcePackRepo, ctm, *resourcePackManager, createLevelStorageFunc, pathmgr.getWorldsPath(), nullptr, nullptr, [](mcpe::string const& s) {
+    ServerInstance instance (minecraftApp, whitelist, ops, &pathmgr, idleTimeout, props.worldDir.get(), props.worldName.get(), props.motd.get(), levelSettings, props.viewDistance, true, props.port, props.portV6, props.maxPlayers, props.onlineMode, {}, "normal", *mce::UUID::EMPTY, eventing, resourcePackRepo, ctm, *resourcePackManager, createLevelStorageFunc, pathmgr.getWorldsPath(), nullptr, nullptr, [](mcpe::string const& s) {
         Log::debug("Launcher", "Unloading level: %s", s.c_str());
     }, [](mcpe::string const& s) {
         Log::debug("Launcher", "Saving level: %s", s.c_str());
