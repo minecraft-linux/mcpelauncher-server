@@ -159,7 +159,7 @@ int main(int argc, char *argv[]) {
     auto createLevelStorageFunc = [&levelStorage, &props, keyProvider](Scheduler& scheduler) {
         return levelStorage.createLevelStorage(scheduler, props.worldDir.get(), mcpe::string(), *keyProvider);
     };
-    ServerInstance instance (minecraftApp, whitelist, ops, &pathmgr, idleTimeout, props.worldDir.get(), props.worldName.get(), props.motd.get(), levelSettings, api, props.viewDistance, true, props.port, props.portV6, props.maxPlayers, props.onlineMode, {}, "normal", *mce::UUID::EMPTY, eventing, resourcePackRepo, ctm, *resourcePackManager, createLevelStorageFunc, pathmgr.getWorldsPath(), nullptr, nullptr, [](mcpe::string const& s) {
+    ServerInstance instance (minecraftApp, whitelist, ops, &pathmgr, idleTimeout, props.worldDir.get(), props.worldName.get(), props.motd.get(), levelSettings, api, props.viewDistance, true, props.port, props.portV6, props.maxPlayers, props.onlineMode, {}, "normal", *mce::UUID::EMPTY, eventing, resourcePackRepo, ctm, *resourcePackManager, createLevelStorageFunc, pathmgr.getWorldsPath(), nullptr, nullptr, nullptr, [](mcpe::string const& s) {
         Log::debug("Launcher", "Unloading level: %s", s.c_str());
     }, [](mcpe::string const& s) {
         Log::debug("Launcher", "Saving level: %s", s.c_str());
