@@ -1,12 +1,10 @@
 #include <log.h>
 #include <mcpelauncher/minecraft_utils.h>
 #include <mcpelauncher/crash_handler.h>
-#include <mcpelauncher/path_helper.h>
 #include <minecraft/Common.h>
 #include <mcpelauncher/app_platform.h>
 #include <minecraft/Whitelist.h>
-#include <minecraft/OpsList.h>
-#include <minecraft/Api.h>
+#include <minecraft/PermissionsMap.h>
 #include <minecraft/LevelSettings.h>
 #include <minecraft/FilePathManager.h>
 #include <minecraft/AppResourceLoader.h>
@@ -79,7 +77,7 @@ int main(int argc, char *argv[]) {
 
     Log::trace("Launcher", "Loading whitelist and operator list");
     Whitelist whitelist;
-    OpsList ops (true);
+    PermissionsMap permissionsMap (true);
 
     Log::trace("Launcher", "Setting up level settings");
     LevelSettings levelSettings;
@@ -156,7 +154,7 @@ int main(int argc, char *argv[]) {
     auto createLevelStorageFunc = [&levelStorage, &props, keyProvider](Scheduler& scheduler) {
         return levelStorage.createLevelStorage(scheduler, props.worldDir.get(), *ContentIdentity::EMPTY, *keyProvider);
     };
-    ServerInstance instance (minecraftApp, whitelist, ops, &pathmgr, idleTimeout, props.worldDir.get(), props.worldName.get(), props.motd.get(), levelSettings, props.viewDistance, true, props.port, props.portV6, props.maxPlayers, props.onlineMode, {}, "normal", *mce::UUID::EMPTY, eventing, resourcePackRepo, ctm, *resourcePackManager, createLevelStorageFunc, pathmgr.getWorldsPath(), nullptr, nullptr, [](mcpe::string const& s) {
+    ServerInstance instance (minecraftApp, whitelist, permissionsMap, &pathmgr, idleTimeout, props.worldDir.get(), props.worldName.get(), props.motd.get(), levelSettings, props.viewDistance, true, props.port, props.portV6, props.maxPlayers, props.onlineMode, {}, "normal", *mce::UUID::EMPTY, eventing, resourcePackRepo, ctm, *resourcePackManager, createLevelStorageFunc, pathmgr.getWorldsPath(), nullptr, nullptr, nullptr, [](mcpe::string const& s) {
         Log::debug("Launcher", "Unloading level: %s", s.c_str());
     }, [](mcpe::string const& s) {
         Log::debug("Launcher", "Saving level: %s", s.c_str());
