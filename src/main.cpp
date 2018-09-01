@@ -92,6 +92,9 @@ int main(int argc, char *argv[]) {
     levelSettings.lanBroadcast = true;
     levelSettings.commandsEnabled = true;
     levelSettings.texturepacksRequired = false;
+    levelSettings.defaultSpawnX = INT_MIN;
+    levelSettings.defaultSpawnY = INT_MIN;
+    levelSettings.defaultSpawnZ = INT_MIN;
 
     Log::trace("Launcher", "Initializing FilePathManager");
     FilePathManager pathmgr (appPlatform->getCurrentStoragePath(), false);
