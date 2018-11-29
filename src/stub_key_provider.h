@@ -12,6 +12,9 @@ public:
     virtual mcpe::string getContentKey(mce::UUID const&) {
         return mcpe::string();
     }
+    virtual mcpe::string getAlternativeContentKey(mce::UUID const&) {
+        return mcpe::string();
+    }
     virtual void setTempContentKeys(std::unordered_map<std::string, std::string> const&) { }
     virtual void clearTempContentKeys() { }
 

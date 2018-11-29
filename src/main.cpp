@@ -130,7 +130,7 @@ int main(int argc, char *argv[]) {
     Log::trace("Launcher", "Initializing PackSourceFactory");
     PackSourceFactory packSourceFactory (nullptr);
     Log::trace("Launcher", "Initializing ResourcePackRepository");
-    ResourcePackRepository resourcePackRepo (eventing, packManifestFactory, skinPackKeyProvider, &pathmgr, packSourceFactory);
+    ResourcePackRepository resourcePackRepo (eventing, packManifestFactory, skinPackKeyProvider, &pathmgr, packSourceFactory, false);
     Log::trace("Launcher", "Adding vanilla resource pack");
     std::unique_ptr<ResourcePackStack> stack (new ResourcePackStack());
     stack->add(PackInstance(resourcePackRepo.vanillaPack, -1, false, nullptr), resourcePackRepo, false);
@@ -157,7 +157,8 @@ int main(int argc, char *argv[]) {
     auto createLevelStorageFunc = [&levelStorage, &props, keyProvider](Scheduler& scheduler) {
         return levelStorage.createLevelStorage(scheduler, props.worldDir.get(), *ContentIdentity::EMPTY, *keyProvider);
     };
-    ServerInstance instance (minecraftApp, whitelist, permissionsMap, &pathmgr, idleTimeout, props.worldDir.get(), props.worldName.get(), props.motd.get(), levelSettings, props.viewDistance, true, props.port, props.portV6, props.maxPlayers, props.onlineMode, {}, "normal", *mce::UUID::EMPTY, eventing, resourcePackRepo, ctm, *resourcePackManager, createLevelStorageFunc, pathmgr.getWorldsPath(), nullptr, nullptr, nullptr, [](mcpe::string const& s) {
+    std::unique_ptr<EducationOptions> eduOptions (new EducationOptions(resourcePackManager));
+    ServerInstance instance (minecraftApp, whitelist, permissionsMap, &pathmgr, idleTimeout, props.worldDir.get(), props.worldName.get(), props.motd.get(), levelSettings, props.viewDistance, true, props.port, props.portV6, props.maxPlayers, props.onlineMode, {}, "normal", *mce::UUID::EMPTY, eventing, resourcePackRepo, ctm, *resourcePackManager, createLevelStorageFunc, pathmgr.getWorldsPath(), nullptr, mcpe::string(), mcpe::string(), std::move(eduOptions), nullptr, [](mcpe::string const& s) {
         Log::debug("Launcher", "Unloading level: %s", s.c_str());
     }, [](mcpe::string const& s) {
         Log::debug("Launcher", "Saving level: %s", s.c_str());
