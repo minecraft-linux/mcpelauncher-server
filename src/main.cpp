@@ -168,6 +168,7 @@ int main(int argc, char *argv[]) {
     Log::trace("Launcher", "Loading language data");
     ResourceLoadManager resLoadMgr;
     I18n::loadLanguages(*resourcePackManager, resLoadMgr, "en_US");
+    resLoadMgr.sync((ResourceLoadType) 4);
     resourcePackManager->onLanguageChanged();
     Log::info("Launcher", "Server initialized");
     modLoader.onServerInstanceInitialized(&instance);
