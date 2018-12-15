@@ -4,7 +4,7 @@
 #include <minecraft/Common.h>
 #include <mcpelauncher/app_platform.h>
 #include <minecraft/Whitelist.h>
-#include <minecraft/PermissionsMap.h>
+#include <minecraft/PermissionsFile.h>
 #include <minecraft/LevelSettings.h>
 #include <minecraft/FilePathManager.h>
 #include <minecraft/AppResourceLoader.h>
@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
 
     Log::trace("Launcher", "Loading whitelist and operator list");
     Whitelist whitelist;
-    PermissionsMap permissionsMap (true);
+    PermissionsFile permissionsFile ("permissions.json");
 
     Log::trace("Launcher", "Setting up level settings");
     LevelSettings levelSettings;
@@ -158,13 +158,16 @@ int main(int argc, char *argv[]) {
         return levelStorage.createLevelStorage(scheduler, props.worldDir.get(), *ContentIdentity::EMPTY, *keyProvider);
     };
     std::unique_ptr<EducationOptions> eduOptions (new EducationOptions(resourcePackManager));
-    ServerInstance instance (minecraftApp, whitelist, permissionsMap, &pathmgr, idleTimeout, props.worldDir.get(), props.worldName.get(), props.motd.get(), levelSettings, props.viewDistance, true, props.port, props.portV6, props.maxPlayers, props.onlineMode, {}, "normal", *mce::UUID::EMPTY, eventing, resourcePackRepo, ctm, *resourcePackManager, createLevelStorageFunc, pathmgr.getWorldsPath(), nullptr, mcpe::string(), mcpe::string(), std::move(eduOptions), nullptr, [](mcpe::string const& s) {
+    ServerInstanceEventCoordinator instanceEventCoordinator;
+    ServerInstance instance (minecraftApp, instanceEventCoordinator);
+    instance.initializeServer(minecraftApp, whitelist, &permissionsFile, &pathmgr, idleTimeout, props.worldDir.get(), props.worldName.get(), props.motd.get(), levelSettings, props.viewDistance, true, props.port, props.portV6, props.maxPlayers, props.onlineMode, {}, "normal", *mce::UUID::EMPTY, eventing, resourcePackRepo, ctm, *resourcePackManager, createLevelStorageFunc, pathmgr.getWorldsPath(), nullptr, mcpe::string(), mcpe::string(), std::move(eduOptions), nullptr, [](mcpe::string const& s) {
         Log::debug("Launcher", "Unloading level: %s", s.c_str());
     }, [](mcpe::string const& s) {
         Log::debug("Launcher", "Saving level: %s", s.c_str());
     });
     Log::trace("Launcher", "Loading language data");
-    I18n::loadLanguages(*resourcePackManager, "en_US");
+    ResourceLoadManager resLoadMgr;
+    I18n::loadLanguages(*resourcePackManager, resLoadMgr, "en_US");
     resourcePackManager->onLanguageChanged();
     Log::info("Launcher", "Server initialized");
     modLoader.onServerInstanceInitialized(&instance);
