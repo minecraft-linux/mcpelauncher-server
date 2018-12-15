@@ -22,10 +22,12 @@
 #include <mcpelauncher/mod_loader.h>
 #include <argparser.h>
 #include <hybris/dlfcn.h>
+#include <minecraft/V8.h>
 #include "stub_key_provider.h"
 #include "server_properties.h"
 #include "server_minecraft_app.h"
 #include "console_reader.h"
+#include "v8_platform.h"
 
 int main(int argc, char *argv[]) {
     CrashHandler::registerCrashHandler();
@@ -160,6 +162,10 @@ int main(int argc, char *argv[]) {
     std::unique_ptr<EducationOptions> eduOptions (new EducationOptions(resourcePackManager));
     ServerInstanceEventCoordinator instanceEventCoordinator;
     ServerInstance instance (minecraftApp, instanceEventCoordinator);
+    LauncherV8Platform::initVtable(handle);
+    LauncherV8Platform v8Platform;
+    v8::V8::InitializePlatform((v8::Platform*) &v8Platform);
+    v8::V8::Initialize();
     instance.initializeServer(minecraftApp, whitelist, &permissionsFile, &pathmgr, idleTimeout, props.worldDir.get(), props.worldName.get(), props.motd.get(), levelSettings, props.viewDistance, true, props.port, props.portV6, props.maxPlayers, props.onlineMode, {}, "normal", *mce::UUID::EMPTY, eventing, resourcePackRepo, ctm, *resourcePackManager, createLevelStorageFunc, pathmgr.getWorldsPath(), nullptr, mcpe::string(), mcpe::string(), std::move(eduOptions), nullptr, [](mcpe::string const& s) {
         Log::debug("Launcher", "Unloading level: %s", s.c_str());
     }, [](mcpe::string const& s) {
