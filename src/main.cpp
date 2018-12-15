@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
 
     Log::trace("Launcher", "Loading whitelist and operator list");
     Whitelist whitelist;
-    PermissionsFile permissionsFile ("permissions.json");
+    PermissionsFile permissionsFile (PathHelper::getPrimaryDataDirectory() + "permissions.json");
 
     Log::trace("Launcher", "Setting up level settings");
     LevelSettings levelSettings;
