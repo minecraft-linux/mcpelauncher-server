@@ -17,7 +17,7 @@
 #include <minecraft/ServerInstance.h>
 #include <minecraft/Minecraft.h>
 #include <minecraft/I18n.h>
-#include <minecraft/DedicatedServerCommandOrigin.h>
+#include <minecraft/ServerCommandOrigin.h>
 #include <minecraft/MinecraftCommands.h>
 #include <mcpelauncher/mod_loader.h>
 #include <argparser.h>
@@ -170,7 +170,7 @@ int main(int argc, char *argv[]) {
         Log::debug("Launcher", "Unloading level: %s", s.c_str());
     }, [](mcpe::string const& s) {
         Log::debug("Launcher", "Saving level: %s", s.c_str());
-    });
+    }, nullptr);
     Log::trace("Launcher", "Loading language data");
     ResourceLoadManager resLoadMgr;
     I18n::loadLanguages(*resourcePackManager, resLoadMgr, "en_US");
@@ -186,7 +186,7 @@ int main(int argc, char *argv[]) {
     std::string line;
     while (reader.read(line)) {
         instance.queueForServerThread([&instance, line]() {
-            std::unique_ptr<DedicatedServerCommandOrigin> commandOrigin(new DedicatedServerCommandOrigin("Server", *instance.minecraft));
+            std::unique_ptr<ServerCommandOrigin> commandOrigin(new ServerCommandOrigin("Server", (ServerLevel &)*instance.minecraft->getLevel()));
             instance.minecraft->getCommands()->requestCommandExecution(std::move(commandOrigin), line, 4, true);
         });
     }
