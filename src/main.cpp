@@ -121,7 +121,7 @@ int main(int argc, char *argv[]) {
     eventing.init();
     Log::trace("Launcher", "Initializing ResourcePackManager");
     ContentTierManager ctm;
-    ResourcePackManager* resourcePackManager = new ResourcePackManager([&pathmgr]() { return pathmgr.getRootPath(); }, ctm);
+    ResourcePackManager* resourcePackManager = new ResourcePackManager([&pathmgr]() { return pathmgr.getRootPath(); }, ctm, false);
     ResourceLoaders::registerLoader((ResourceFileSystem) 0, std::unique_ptr<ResourceLoader>(resourcePackManager));
     Log::trace("Launcher", "Initializing PackManifestFactory");
     PackManifestFactory packManifestFactory (eventing);
@@ -166,11 +166,11 @@ int main(int argc, char *argv[]) {
     LauncherV8Platform v8Platform;
     v8::V8::InitializePlatform((v8::Platform*) &v8Platform);
     v8::V8::Initialize();
-    instance.initializeServer(minecraftApp, whitelist, &permissionsFile, &pathmgr, idleTimeout, props.worldDir.get(), props.worldName.get(), props.motd.get(), levelSettings, props.viewDistance, true, props.port, props.portV6, props.maxPlayers, props.onlineMode, {}, "normal", *mce::UUID::EMPTY, eventing, resourcePackRepo, ctm, *resourcePackManager, createLevelStorageFunc, pathmgr.getWorldsPath(), nullptr, mcpe::string(), mcpe::string(), std::move(eduOptions), nullptr, [](mcpe::string const& s) {
+    instance.initializeServer(minecraftApp, whitelist, &permissionsFile, &pathmgr, idleTimeout, props.worldDir.get(), props.worldName.get(), props.motd.get(), levelSettings, props.viewDistance, true, { props.port, props.portV6, props.maxPlayers }, props.onlineMode, {}, "normal", *mce::UUID::EMPTY, eventing, resourcePackRepo, ctm, *resourcePackManager, createLevelStorageFunc, pathmgr.getWorldsPath(), nullptr, mcpe::string(), mcpe::string(), std::move(eduOptions), resourcePackManager, [](mcpe::string const& s) {
         Log::debug("Launcher", "Unloading level: %s", s.c_str());
     }, [](mcpe::string const& s) {
         Log::debug("Launcher", "Saving level: %s", s.c_str());
-    }, nullptr);
+    }, nullptr, nullptr);
     Log::trace("Launcher", "Loading language data");
     ResourceLoadManager resLoadMgr;
     I18n::loadLanguages(*resourcePackManager, resLoadMgr, "en_US");
