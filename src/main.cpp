@@ -161,12 +161,12 @@ int main(int argc, char *argv[]) {
     };
     std::unique_ptr<EducationOptions> eduOptions (new EducationOptions(resourcePackManager));
     ServerInstanceEventCoordinator instanceEventCoordinator;
-    ServerInstance instance (minecraftApp, instanceEventCoordinator);
+    std::unique_ptr<ServerInstance> instance (new ServerInstance(minecraftApp, instanceEventCoordinator));
     LauncherV8Platform::initVtable(handle);
     LauncherV8Platform v8Platform;
     v8::V8::InitializePlatform((v8::Platform*) &v8Platform);
     v8::V8::Initialize();
-    instance.initializeServer(minecraftApp, whitelist, &permissionsFile, &pathmgr, idleTimeout, props.worldDir.get(), props.worldName.get(), props.motd.get(), levelSettings, props.viewDistance, true, { props.port, props.portV6, props.maxPlayers }, props.onlineMode, {}, "normal", *mce::UUID::EMPTY, eventing, resourcePackRepo, ctm, *resourcePackManager, createLevelStorageFunc, pathmgr.getWorldsPath(), nullptr, mcpe::string(), mcpe::string(), std::move(eduOptions), resourcePackManager, [](mcpe::string const& s) {
+    instance->initializeServer(minecraftApp, whitelist, &permissionsFile, &pathmgr, idleTimeout, props.worldDir.get(), props.worldName.get(), props.motd.get(), levelSettings, props.viewDistance, true, { props.port, props.portV6, props.maxPlayers }, props.onlineMode, {}, "normal", *mce::UUID::EMPTY, eventing, resourcePackRepo, ctm, *resourcePackManager, createLevelStorageFunc, pathmgr.getWorldsPath(), nullptr, mcpe::string(), mcpe::string(), std::move(eduOptions), resourcePackManager, [](mcpe::string const& s) {
         Log::debug("Launcher", "Unloading level: %s", s.c_str());
     }, [](mcpe::string const& s) {
         Log::debug("Launcher", "Saving level: %s", s.c_str());
@@ -177,22 +177,24 @@ int main(int argc, char *argv[]) {
     resLoadMgr.sync((ResourceLoadType) 4);
     resourcePackManager->onLanguageChanged();
     Log::info("Launcher", "Server initialized");
-    modLoader.onServerInstanceInitialized(&instance);
-    instance.startServerThread();
+    modLoader.onServerInstanceInitialized(instance.get());
+    instance->startServerThread();
 
     ConsoleReader reader;
     ConsoleReader::registerInterruptHandler();
 
     std::string line;
     while (reader.read(line)) {
-        instance.queueForServerThread([&instance, line]() {
-            std::unique_ptr<ServerCommandOrigin> commandOrigin(new ServerCommandOrigin("Server", (ServerLevel &)*instance.minecraft->getLevel()));
-            instance.minecraft->getCommands()->requestCommandExecution(std::move(commandOrigin), line, 4, true);
+        instance->queueForServerThread([&instance, line]() {
+            std::unique_ptr<ServerCommandOrigin> commandOrigin(new ServerCommandOrigin("Server", (ServerLevel &)*instance->minecraft->getLevel()));
+            instance->minecraft->getCommands()->requestCommandExecution(std::move(commandOrigin), line, 4, true);
         });
     }
 
     Log::info("Launcher", "Stopping...");
-    instance.leaveGameSync();
+    instance->leaveGameSync();
+    instance.reset();
+    appPlatform->teardown();
 
     MinecraftUtils::workaroundShutdownCrash(handle);
     return 0;
