@@ -6,3 +6,4 @@ add_executable(mcpelauncher-server src/main.cpp src/stub_key_provider.h src/serv
 target_link_libraries(mcpelauncher-server logger mcpelauncher-core properties-parser argparser)
 
 install(TARGETS mcpelauncher-server RUNTIME DESTINATION bin)
+include(CPackSettings.cmake)
