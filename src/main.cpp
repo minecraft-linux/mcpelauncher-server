@@ -99,7 +99,7 @@ int main(int argc, char *argv[]) {
     levelSettings.defaultSpawnZ = INT_MIN;
 
     Log::trace("Launcher", "Initializing FilePathManager");
-    FilePathManager pathmgr (appPlatform->getCurrentStoragePath(), false);
+    Core::FilePathManager pathmgr (appPlatform->getCurrentStoragePath(), false);
     pathmgr.setPackagePath(appPlatform->getPackagePath());
     pathmgr.setSettingsPath(pathmgr.getRootPath());
     Log::trace("Launcher", "Initializing resource loaders");
@@ -130,7 +130,7 @@ int main(int argc, char *argv[]) {
     Log::trace("Launcher", "Initializing StubKeyProvider");
     StubKeyProvider stubKeyProvider;
     Log::trace("Launcher", "Initializing PackSourceFactory");
-    PackSourceFactory packSourceFactory (nullptr);
+    PackSourceFactory packSourceFactory;
     Log::trace("Launcher", "Initializing ResourcePackRepository");
     ResourcePackRepository resourcePackRepo (eventing, packManifestFactory, skinPackKeyProvider, &pathmgr, packSourceFactory, false);
     Log::trace("Launcher", "Adding vanilla resource pack");
@@ -162,15 +162,15 @@ int main(int argc, char *argv[]) {
     std::unique_ptr<EducationOptions> eduOptions (new EducationOptions(resourcePackManager));
     ServerInstanceEventCoordinator instanceEventCoordinator;
     std::unique_ptr<ServerInstance> instance (new ServerInstance(minecraftApp, instanceEventCoordinator));
-    LauncherV8Platform::initVtable(handle);
-    LauncherV8Platform v8Platform;
-    v8::V8::InitializePlatform((v8::Platform*) &v8Platform);
-    v8::V8::Initialize();
-    instance->initializeServer(minecraftApp, whitelist, &permissionsFile, &pathmgr, idleTimeout, props.worldDir.get(), props.worldName.get(), props.motd.get(), levelSettings, props.viewDistance, true, { props.port, props.portV6, props.maxPlayers }, props.onlineMode, {}, "normal", *mce::UUID::EMPTY, eventing, resourcePackRepo, ctm, *resourcePackManager, createLevelStorageFunc, pathmgr.getWorldsPath(), nullptr, mcpe::string(), mcpe::string(), std::move(eduOptions), resourcePackManager, [](mcpe::string const& s) {
-        Log::debug("Launcher", "Unloading level: %s", s.c_str());
-    }, [](mcpe::string const& s) {
-        Log::debug("Launcher", "Saving level: %s", s.c_str());
-    }, nullptr, nullptr);
+    // LauncherV8Platform::initVtable(handle);
+    // LauncherV8Platform v8Platform;
+    // v8::V8::InitializePlatform((v8::Platform*) &v8Platform);
+    // v8::V8::Initialize();
+    instance->initializeServer(minecraftApp, whitelist, &permissionsFile, &pathmgr, idleTimeout, props.worldDir.get(), props.worldName.get(), props.motd.get(), levelSettings, props.viewDistance, true, { props.port, props.portV6, props.maxPlayers }, props.onlineMode, {}, "normal", *mce::UUID::EMPTY, eventing, resourcePackRepo, ctm, *resourcePackManager, createLevelStorageFunc, pathmgr.getWorldsPath(), nullptr, mcpe::string(), mcpe::string(), std::move(eduOptions), resourcePackManager, []() {
+        Log::debug("Launcher", "Unloading level");
+    }, []() {
+        Log::debug("Launcher", "Saving level");
+    }, nullptr, nullptr, false);
     Log::trace("Launcher", "Loading language data");
     ResourceLoadManager resLoadMgr;
     I18n::loadLanguages(*resourcePackManager, resLoadMgr, "en_US");
@@ -186,7 +186,7 @@ int main(int argc, char *argv[]) {
     std::string line;
     while (reader.read(line)) {
         instance->queueForServerThread([&instance, line]() {
-            std::unique_ptr<ServerCommandOrigin> commandOrigin(new ServerCommandOrigin("Server", (ServerLevel &)*instance->minecraft->getLevel()));
+            std::unique_ptr<ServerCommandOrigin> commandOrigin(new ServerCommandOrigin("Server", (ServerLevel &)*instance->minecraft->getLevel(), CommandPermissionLevel::ServerConsole));
             instance->minecraft->getCommands()->requestCommandExecution(std::move(commandOrigin), line, 4, true);
         });
     }
